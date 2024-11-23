@@ -1,0 +1,68 @@
+
+raw_data_folder: "/media/morikawa/DataHDD/home/data/segmentation/prostate_mri/data"
+task: "prostate"
+
+
+dataset:
+  train: /media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi/domain_generalization    
+  test: /media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi/domain_generalization 
+  resize:
+    height: 384
+    width: 384
+  mean: [0.,0.,0.]
+  std: [1.,1.,1.]
+  seed: 42
+  fillcolor: 255
+
+model:
+  torch_room: /media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi/domain_generalization/models
+  pretrained: True
+  drop_rate: 0
+  num_classes: 1
+  num_channels: 1
+  
+train:
+  device: null
+  gpu_exclude: []
+  eval_interval: 500
+  test_interval: 1000
+  test_start: 10000
+  use_CMSL: False
+  checkpoint_dir: /media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi/domain_generalization
+  resume_path: null
+  batch_size: 16
+  num_workers: 8
+  max_epoch: null
+  # max_iter will be determined by local_iter and rounds, even if max_epoch is set
+  max_iter: 40000
+  # optimizer: 
+  #   lr: 1.0e-3
+  #   beta1: 0.99
+  #   beta2: 0.9999
+  #   weight_decay: 5.0e-4
+  optimizer: 
+    lr: 1.0e-3
+    momentum: 0.9
+    weight_decay: 1.0e-4
+  lr_scheduler:
+    factor: 0.1
+    patience: 2
+    min_lr: 1.0e-7
+  ema_decay: 0.999
+  ema: True
+  pseudo_label_threshold: 0.95
+  lambda_u: 1.0
+  patience: 10
+
+eval: 
+  target_dir: /media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi/domain_generalization/
+
+wandb:
+  key: ""
+  project: "Prostate"
+  run_name: ""
+  
+
+hooks:
+  wandb: True
+  

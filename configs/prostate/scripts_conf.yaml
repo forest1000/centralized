@@ -1,0 +1,9 @@
+target_folder: "/media/morikawa/DataHDD/home/data/segmentation/prostate_mri/semi" # target directory 
+raw_data_folder: "/media/morikawa/DataHDD/home/data/segmentation/prostate_mri/data" # directory of the original dataset
+seed: 521
+labeled_slice_rate: 0.15
+
+resize:
+  height: 384
+  width: 384
+

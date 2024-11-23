@@ -1,0 +1,10 @@
+target_folder: "/media/morikawa/DataHDD/home/data/segmentation/cardiac/semi" # target directory 
+raw_data_folder: "/media/morikawa/DataHDD/home/data/segmentation/cardiac/OpenDataset" # directory of the original dataset
+seed: 523
+labeled_slice_rate: 0.15
+labeled_slice_number : 30
+
+resize:
+  height: 288
+  width: 288
+

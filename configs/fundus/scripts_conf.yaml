@@ -1,0 +1,9 @@
+target_folder: "/media/morikawa/DataHDD/home/data/segmentation/fundus_dofe/semi" # target directory 
+raw_data_folder: "/media/morikawa/DataHDD/home/data/segmentation/fundus_dofe/Fundus_row" # directory of the original dataset
+seed: 523
+labeled_slice_rate: 0.15
+
+resize: 
+  height: 256
+  width: 256
+

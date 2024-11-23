@@ -1,0 +1,9 @@
+target_folder: "/media/morikawa/DataHDD/home/data/segmentation/spinal/semi" # target directory 
+raw_data_folder: "/media/morikawa/DataHDD/home/data/segmentation/spinal/spinal_data" # directory of the original dataset
+seed: 52
+labeled_slice_rate: 0.25
+labeled_slice_number : 30
+
+resize: 
+  height: 256
+  width: 256

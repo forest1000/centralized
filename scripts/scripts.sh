@@ -1,0 +1,5 @@
+python3 cardiac_prepare.py
+python3 fundus_prepare.py
+python3 prostate_prepare.py
+python3 generate_labeled_csv.py
+python3 domain_generalization_scripts.py
