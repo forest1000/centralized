@@ -46,8 +46,10 @@ for task_name in task_list:
                 continue
             if source_client == "domain_generalization":
                 continue
+            
             if task_name == 'spinal':
                 source_train_csv = os.path.join(base_dir, source_client, "labeled_data.csv")
+
             else:
                 source_train_csv = os.path.join(base_dir, source_client, "data.csv")
             source_unlabeled_csv = os.path.join(base_dir, source_client, "unlabeled.csv")
@@ -115,3 +117,7 @@ for task_name in task_list:
         print(f"Saved shuffled train, unlabeled, labeled and test csv to {experiment_dir}\n")
         
 print("All experiments processed.")
+
+"""
+data.csv includes whole client's data
+"""

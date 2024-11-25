@@ -53,7 +53,7 @@ class SpinalEvalStrategy(EvaluationStrategy):
             mask = mask.to(device=device).long()
             output = model(image)
             grey_mask = mask.eq(1).float()
-            cord_mask = mask.eq(1).float() + mask.eq(2).float()
+            cord_mask = mask.ge(1).float()
 
             mask = torch.cat((grey_mask.unsqueeze(1), cord_mask.unsqueeze(1)), dim=1)
             #In my assuming, pred_label threshold would be 
