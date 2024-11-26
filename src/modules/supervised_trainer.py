@@ -163,7 +163,6 @@ class SupervisedTrainer(TrainerBase):
         loss_fn = DiceCELoss(sigmoid=True)  
 
         loss = loss_fn(output, mask)
-        logging.info(f"Train loss {loss}")
         
         self.loss_logger.update(loss=loss)
         self.metric_logger.update(loss=loss)

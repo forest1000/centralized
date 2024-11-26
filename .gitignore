@@ -1,0 +1,5 @@
+*.log
+wandb/
+log/
+*.pyc
+setup.sh

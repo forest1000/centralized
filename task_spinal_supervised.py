@@ -1,6 +1,6 @@
 import subprocess
 for i in range(3,4):
-    run_name = f"supervised_unseen{i}_sgd"
+    run_name = f"supervised_unseen{i}_adamw"
     config = "/media/morikawa/DataHDD/home/centralized/configs/spinal/run_conf.yaml"
     
     command = [

@@ -37,8 +37,8 @@ train:
   max_epoch: null
   # max_iter will be determined by local_iter and rounds, even if max_epoch is set
   max_iter: 40000
-  max_epoch: 200
-  optimizer_name: 'sgd'
+  max_epoch: 100
+  optimizer_name: 'adamw'
   optimizer: 
     adam:
       lr: 3.0e-4
@@ -47,21 +47,21 @@ train:
       weight_decay: 1.0e-4
       eps: 1.0e-7
     adamw:
-      lr: 5.0e-5
+      lr: 1.0e-4
       beta1: 0.9
       beta2: 0.999
       weight_decay: 1.0e-4
       eps: 1.0e-7
     sgd: 
-      lr: 5.0e-3
+      lr: 1.0e-3
       momentum: 0.9
-      weight_decay: 1.0e-3
+      weight_decay: 1.0e-4
   lr_scheduler:
     factor: 0.1
-    patience: 2
+    patience: 3
     min_lr: 1.0e-9
     verbose: True
-    power: 2.5
+    power: 2
   ema_decay: 0.999
   ema: False
   pseudo_label_threshold: 0.99
@@ -73,7 +73,7 @@ eval:
 
 wandb:
   key: ""
-  project: "spinal_AdamW"
+  project: "spinal_label30"
   run_name: ""
   
 

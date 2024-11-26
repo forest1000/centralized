@@ -39,6 +39,8 @@ class EMAMetricLogger(object):
     def __init__(self, delimiter="\t"):
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
+        self._cumulative = defaultdict(float)
+        self._itercounts = defaultdict(int)
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
@@ -46,6 +48,8 @@ class EMAMetricLogger(object):
                 v = v.item()
             assert isinstance(v, (float, int))
             self.meters[k].update(v)
+            self._cumulative[k] += v
+            self._itercounts[k] += 1
 
     def __getattr__(self, attr):
         if attr in self.meters:
@@ -62,11 +66,22 @@ class EMAMetricLogger(object):
                 "{}: {:.4f} ({:.4f})".format(name, meter.median, meter.global_avg)
             )
         return self.delimiter.join(loss_str)
+    
+    def avg(self, key):
+        if self._itercounts[key] > 0:
+            return self._cumulative[key] / self._itercounts[key]
+        return float('nan')
+    
+    def reset(self):
+        self._cumulative.clear()
+        self._itercounts.clear()
 
 class MetricLogger(object):
     def __init__(self, delimiter="\t"):
         self._dict = defaultdict()
         self.delimiter = delimiter
+        self._cumulative = defaultdict(float)
+        self._itercounts = defaultdict(int)
 
     def update(self, **kwargs):
         for k, v in kwargs.items():
@@ -74,6 +89,8 @@ class MetricLogger(object):
                 v = v.item()
             assert isinstance(v, (float, int))
             self._dict[k] = v
+            self._cumulative[k] += v
+            self._itercounts[k] += 1
 
     def __getattr__(self, attr):
         if attr in self._dict:
@@ -90,3 +107,12 @@ class MetricLogger(object):
                 "{}: {:.4f} ({:.4f})".format(k, v)
             )
         return self.delimiter.join(loss_str)
+    
+    def avg(self, key):
+        if self._itercounts[key] > 0:
+            return self._cumulative[key] / self._itercounts[key]
+        return float('nan')
+    
+    def reset(self):
+        self._cumulative.clear()
+        self._itercounts.clear()

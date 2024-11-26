@@ -161,6 +161,7 @@ class TrainerBase:
             )
 
     def build_schedular(self, optimizer):
+        """
         self.lr_scheduler = ReduceLROnPlateau(optimizer, factor=self.cfg["train"]["lr_scheduler"]["factor"], 
         patience=self.cfg["train"]["lr_scheduler"]["patience"], verbose=True, min_lr=self.cfg["train"]["lr_scheduler"]["min_lr"])
         
@@ -170,7 +171,7 @@ class TrainerBase:
             scale = (1 - epoch / self.max_epoch) ** power
             return max(scale, self.cfg["train"]["lr_scheduler"]["min_lr"] / optimizer.param_groups[0]['lr'])
         self.lr_scheduler = LambdaLR(optimizer, lr_lambda=polynomial_decay)
-        """
+        
 
     def init_dataloader(self):
         raise NotImplementedError
@@ -216,6 +217,13 @@ class TrainerBase:
                     
                     if self.iter % self.iter_per_epoch == 0:
                         self.epoch += 1
+                        """
+                        epoch_train_loss = self.loss_logger.avg('loss')
+                        logging.info(f"Epoch {self.epoch} - Training Loss: {epoch_train_loss:.4f}")
+                        self.lr_scheduler.step(epoch_train_loss)
+
+                        self.loss_logger.reset()"""
+                        self.lr_scheduler.step()
                         test_dc_avg_loss, loss_metrics = self.test()
                         # Check for improvement
                         if test_dc_avg_loss > best_test_loss:
