@@ -172,13 +172,14 @@ for img_path in img_files_test_site1:
 df_un.to_csv(f'{target_folder}/client_1/unlabeled_data.csv',index=False)
 print("Finish client1")
 #Process for site 2, 3 and 4 using the information from site 1
-crop_heights = {2:100,
-               3:200,
-               4:175,}
-crop_widths = {2:100,
-              3:200,
-              4:175,
+crop_heights = {2:80,
+               3:170,
+               4:155,}
+crop_widths = {2:80,
+              3:170,
+              4:155,
               }
+ratio_crop = 0.9
 for i in [3,4,2]:
     
     crop_height = crop_heights[i]
@@ -228,10 +229,10 @@ for i in [3,4,2]:
                 y_max, x_max = coords.max(axis=0)
                 x_d, y_d = x_max - x_min, y_max-y_min
                 x_rate, y_rate = x_d/x_diff, y_d/y_diff
-                x2_up = int(np.round(x_up * x_rate))
-                x2_low = int(np.round(x_low * x_rate))
-                y2_up = int(np.round(y_up * y_rate))
-                y2_low = int(np.round(y_low * y_rate))
+                x2_up = int(np.round(x_up * x_rate* ratio_crop))
+                x2_low = int(np.round(x_low * x_rate * ratio_crop))
+                y2_up = int(np.round(y_up * y_rate * ratio_crop))
+                y2_low = int(np.round(y_low * y_rate * ratio_crop))
 
                 # cropping
                 mask_slice = mask_slice[y_min -y2_low: y_max + y2_up, x_min - x2_low: x_max + x2_up]

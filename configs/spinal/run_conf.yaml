@@ -33,7 +33,7 @@ train:
   checkpoint_dir: /media/morikawa/DataHDD/home/data/segmentation/spinal/semi/domain_generalization
   resume_path: null
   batch_size: 16
-  num_workers: 8
+  num_workers: 5
   max_epoch: null
   # max_iter will be determined by local_iter and rounds, even if max_epoch is set
   max_iter: 40000
@@ -41,27 +41,27 @@ train:
   optimizer_name: 'adamw'
   optimizer: 
     adam:
+      lr: 1.5e-4
+      beta1: 0.9
+      beta2: 0.999
+      weight_decay: 1.0e-6
+      eps: 1.0e-7
+    adamw:
       lr: 3.0e-4
       beta1: 0.9
       beta2: 0.999
-      weight_decay: 1.0e-4
-      eps: 1.0e-7
-    adamw:
-      lr: 1.0e-4
-      beta1: 0.9
-      beta2: 0.999
-      weight_decay: 1.0e-4
-      eps: 1.0e-7
+      weight_decay: 1.0e-3
+      eps: 1.0e-8
     sgd: 
       lr: 1.0e-3
       momentum: 0.9
       weight_decay: 1.0e-4
   lr_scheduler:
-    factor: 0.1
+    factor: 0.5
     patience: 3
-    min_lr: 1.0e-9
+    min_lr: 1.0e-7
     verbose: True
-    power: 2
+    power: 2.5
   ema_decay: 0.999
   ema: False
   pseudo_label_threshold: 0.99
@@ -73,7 +73,7 @@ eval:
 
 wandb:
   key: ""
-  project: "spinal_label30"
+  project: "spinal_0.9"
   run_name: ""
   
 

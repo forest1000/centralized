@@ -146,6 +146,7 @@ class TrainerBase:
     def build_optimizer(self):
         self.opt_name = self.cfg['train']['optimizer_name'].lower()
         logging.info(f'Opimizer you are using is {self.opt_name}')
+        
         if self.opt_name =='adam':
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg["train"]["optimizer"]["adam"]['lr'],
                 betas=(self.cfg["train"]["optimizer"]["adam"]['beta1'],self.cfg["train"]["optimizer"]["adam"]['beta2']), 

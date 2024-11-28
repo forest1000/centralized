@@ -51,7 +51,6 @@ class SpinalDataset(Dataset):
                 albumentations.HorizontalFlip(p=0.5),
                 albumentations.ElasticTransform(),
                 albumentations.Resize(height, width),
-                
                 ]),
             'strong': albumentations.Compose([
                 albumentations.RandomBrightnessContrast(brightness_limit=(0.1, 2), contrast_limit=(0.1, 2), p=1),
