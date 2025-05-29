@@ -73,7 +73,6 @@ class SemiTrainer(TrainerBase):
             ret.append(hooks.WAndBUploader(self.cfg))
         if self.cfg['train']['ema']:
             ret.append(hooks.EMA(self.cfg))
-        
         ret.append(hooks.EvalHook(self.cfg))
 
         return ret
