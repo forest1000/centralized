@@ -1,10 +1,4 @@
 # encoding: utf-8
-
-"""
-CXR14
-Read images and corresponding labels.
-"""
-
 import cv2
 import torch
 from torch.utils.data import Dataset

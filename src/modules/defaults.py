@@ -113,12 +113,7 @@ class TrainerBase:
         if self.cfg['hooks']['wandb']:
             self.wandb_init()
 
-
-
     def setup_train(self):
-        """
-        Setup model/optmizer/lr_schedular/loss and etc. for training
-        """
         self.iter = 0
         self.epoch = 0
         self.max_iter = self.cfg["train"]["max_iter"]
@@ -144,35 +139,10 @@ class TrainerBase:
         raise NotImplementedError
             
     def build_optimizer(self):
-        self.opt_name = self.cfg['train']['optimizer_name'].lower()
-        logging.info(f'Opimizer you are using is {self.opt_name}')
-        
-        if self.opt_name =='adam':
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg["train"]["optimizer"]["adam"]['lr'],
-                betas=(self.cfg["train"]["optimizer"]["adam"]['beta1'],self.cfg["train"]["optimizer"]["adam"]['beta2']), 
-                weight_decay=self.cfg["train"]["optimizer"]["adam"]['weight_decay'], eps=self.cfg["train"]['optimizer']["adam"]['eps'])
-        elif self.opt_name == 'sgd':
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.cfg["train"]["optimizer"]['sgd']['lr'],
-                momentum=self.cfg["train"]["optimizer"]['sgd']['momentum'], weight_decay=self.cfg["train"]["optimizer"]['sgd']['weight_decay'])
-        elif self.opt_name == 'adamw':
-            self.optimizer = torch.optim.AdamW(
-                self.model.parameters(), lr=self.cfg["train"]["optimizer"]["adamw"]['lr'],
-                betas=(self.cfg["train"]["optimizer"]["adamw"]['beta1'],self.cfg["train"]["optimizer"]["adamw"]['beta2']), 
-                weight_decay=self.cfg["train"]["optimizer"]["adamw"]['weight_decay'], eps=self.cfg["train"]['optimizer']["adamw"]['eps']
-            )
+        raise NotImplementedError
 
     def build_schedular(self, optimizer):
-        """
-        self.lr_scheduler = ReduceLROnPlateau(optimizer, factor=self.cfg["train"]["lr_scheduler"]["factor"], 
-        patience=self.cfg["train"]["lr_scheduler"]["patience"], verbose=True, min_lr=self.cfg["train"]["lr_scheduler"]["min_lr"])
-        
-        """
-        power = self.cfg['train']['lr_scheduler']['power']
-        def polynomial_decay(epoch):
-            scale = (1 - epoch / self.max_epoch) ** power
-            return max(scale, self.cfg["train"]["lr_scheduler"]["min_lr"] / optimizer.param_groups[0]['lr'])
-        self.lr_scheduler = LambdaLR(optimizer, lr_lambda=polynomial_decay)
-        
+        raise NotImplementedError
 
     def init_dataloader(self):
         raise NotImplementedError
@@ -202,91 +172,23 @@ class TrainerBase:
         """
         logger = logging.getLogger(__name__)
         logger.info("Starting training")
-        best_test_loss = 0
-        max_epoch = self.max_epoch
-        max_iter = self.iter_per_epoch *max_epoch
-        
-        with tqdm(total=max_iter) as pbar:
+       
+        with tqdm(total=iter) as pbar:
             try:
                 self.before_train()
-                for self.iter in range(1,max_iter):
-                    self.before_step()
-                    self.run_step()
-                    self.after_step()
-                    pbar.update(1)
-                    pbar.set_postfix(**{'loss (batch)': self.metric_logger.loss})
+                self.before_step()
+                self.run_step()
+                self.after_step()
+                pbar.update(1)
+                pbar.set_postfix(**{'loss (batch)': self.metric_logger.loss})
                     
-                    if self.iter % self.iter_per_epoch == 0:
-                        self.epoch += 1
-                        """
-                        epoch_train_loss = self.loss_logger.avg('loss')
-                        logging.info(f"Epoch {self.epoch} - Training Loss: {epoch_train_loss:.4f}")
-                        self.lr_scheduler.step(epoch_train_loss)
-
-                        self.loss_logger.reset()"""
-                        self.lr_scheduler.step()
-                        test_dc_avg_loss, loss_metrics = self.test()
-                        # Check for improvement
-                        if test_dc_avg_loss > best_test_loss:
-                            best_test_loss = test_dc_avg_loss
-                            self.save_checkpoint(filename= 'best_loss', best_loss=loss_metrics)
-                        if self.epoch >= max_epoch:
-                            break
-                            
-
-                # self.iter == max_iter can be used by `after_train` to
-                # tell whether the training successfully finished or failed
-                # due to exceptions.
                 self.iter += 1
             except Exception:
                 logger.exception("Exception during training:")
                 raise
             finally:
 
-                self.after_train()
-    """
-    def validate(self):
-        #in main.py cfg['dataset']['val'] = os.path.join(cfg['dataset']['val'], f'experiment_client_{unseen_client}')
-        
-        cfg = copy.deepcopy(self.cfg)
-        basename = os.path.basename(self.cfg['dataset']['val'])#experiment_unseen_{i}
-        val_csv = os.path.join(self.cfg['dataset']['val'],'val.csv')
-
-        cfg['dataset']['val'] = val_csv
-        dataset = self.factory.create_dataset(mode='val', cfg=cfg)
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg["train"]["batch_size"]*2, shuffle=True, 
-                                                num_workers=8, pin_memory=True)
-        device = get_free_device_name(gpu_exclude_list=self.cfg["train"]["gpu_exclude"])
-        save_path = str(self.cfg['wandb']['run_name'] + f"_Epoch_{self.epoch}_experiment_{self.args.unseen_clients}")
-
-        metrics = self.evaluation_strategy.validate(self.model, data_loader, device, save_path)
-        metrics = {f"{basename}_{key}": value for key, value in metrics.items()}
-        self.metric_val_logger.update(**metrics)
-        logging.info(f"######## Validation on {basename} : {metrics}")
-        self.wandb_upload(self.metric_val_logger)
-        """
-    
-    
-    def test(self):
-        cfg = copy.deepcopy(self.cfg)
-        basename = os.path.basename(self.cfg['dataset']['test'])
-        test_csv = os.path.join(self.cfg['dataset']['test'],'test.csv')
-        cfg['dataset']['test'] = test_csv
-
-        dataset = self.factory.create_dataset(mode='test', cfg=cfg)
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=self.cfg["train"]["batch_size"]*2, shuffle=True, 
-                                                    num_workers=8, pin_memory=True)
-        device = get_free_device_name(gpu_exclude_list=self.cfg["train"]["gpu_exclude"])
-        save_path = str(self.cfg['wandb']['run_name'] + f"_round_{self.epoch-1}_experiment_{self.args.unseen_clients}")
-
-        metrics = self.evaluation_strategy.test(self.model, data_loader, device, save_path)
-        metrics = {f"{basename}_{key}": value for key, value in metrics.items()}
-        self.metric_test_logger.update(**metrics)
-        logging.info(f"######## Test on {basename} : {metrics}")
-        # upload the metris to wandb
-        self.wandb_upload(self.metric_test_logger)
-        avg_name = f"{basename}_test/avg_dc"
-        return metrics[avg_name], metrics
+                self.after_train()    
 
     def before_train(self):
         for h in self._hooks:
@@ -318,21 +220,3 @@ class TrainerBase:
         
         logging.info("######## Running wandb logger")
     
-    def wandb_upload(self, metric_logger):
-        self.experiment.log(metric_logger._dict)
-
-    def save_checkpoint(self, filename, best_loss):
-        """
-        Saves the current state of the training process
-        """
-        filepath = os.path.join(self.cfg['train']['checkpoint_dir'], filename)
-
-        checkpoint = {
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            'epoch': self.epoch,
-            'best_test_loss': best_loss
-        }
-        torch.save(checkpoint, filepath)
-        logging.info(f'checkpoint saved at {filepath}')
-                

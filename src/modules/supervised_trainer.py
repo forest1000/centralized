@@ -23,21 +23,33 @@ class SupervisedTrainer(TrainerBase):
         
         if task == 'fundus':
             self.run_step = self._run_step_fundus
-
-        elif task == 'prostate':
-            self.run_step = self._run_step_prostate
-
-        elif task == 'cardiac':
-            self.run_step = self._run_step_cardiac
-        
-        elif task == 'spinal':
-            self.run_step = self._run_step_spinal
             
     def build_model(self):
         num_channels = self.cfg["model"]["num_channels"]
         num_classes = self.cfg["model"]["num_classes"]
         self.model = UNet(num_channels, num_classes)
+
+    def build_optimizer(self):
+        self.opt_name = self.cfg['train']['optimizer_name'].lower()
+        logging.info(f'Opimizer you are using is {self.opt_name}')
+        
+        if self.opt_name == 'sgd':
+            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.cfg["train"]["optimizer"]['sgd']['lr'],
+                momentum=self.cfg["train"]["optimizer"]['sgd']['momentum'], weight_decay=self.cfg["train"]["optimizer"]['sgd']['weight_decay'])
+        elif self.opt_name =='adam':
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg["train"]["optimizer"]["adam"]['lr'],
+                betas=(self.cfg["train"]["optimizer"]["adam"]['beta1'],self.cfg["train"]["optimizer"]["adam"]['beta2']), 
+                weight_decay=self.cfg["train"]["optimizer"]["adam"]['weight_decay'], eps=self.cfg["train"]['optimizer']["adam"]['eps'])
+        elif self.opt_name == 'adamw':
+            self.optimizer = torch.optim.AdamW(
+                self.model.parameters(), lr=self.cfg["train"]["optimizer"]["adamw"]['lr'],
+                betas=(self.cfg["train"]["optimizer"]["adamw"]['beta1'],self.cfg["train"]["optimizer"]["adamw"]['beta2']), 
+                weight_decay=self.cfg["train"]["optimizer"]["adamw"]['weight_decay'], eps=self.cfg["train"]['optimizer']["adamw"]['eps']
+            )
     
+    def build_schedular(self, optimizer):
+        self.build_schedular(optimizer)
+
     def init_dataloader(self):
         batch_size = self.cfg["train"]["batch_size"]
         factory = TaskRegistry.get_factory(self.cfg['task'])
@@ -70,7 +82,7 @@ class SupervisedTrainer(TrainerBase):
         ret = [hooks.Timer()]
         if self.cfg["hooks"]["wandb"]:
             ret.append(hooks.WAndBUploader(self.cfg))
-
+        ret.append(hooks.EvalHook(self.cfg))
         return ret
     
     def before_train(self):
@@ -105,73 +117,6 @@ class SupervisedTrainer(TrainerBase):
         loss.backward()
         self.optimizer.step()
 
-    def _run_step_prostate(self):
-        self.model.train()
-        self.model.to(self.device)
-        _, image, mask = next(self._data_iter)
-        image = image.to(self.device)
-        mask = mask.to(self.device)
-        # 0 is the label for the background
-        mask = mask.ne(0).long().unsqueeze(1)
-
-        output = self.model(image)
-        loss_fn = DiceCELoss(sigmoid=True)
-
-        loss = loss_fn(output, mask)
-        
-        self.loss_logger.update(loss=loss)
-        self.metric_logger.update(loss=loss)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-    def _run_step_cardiac(self):
-        self.model.train()
-        self.model.to(self.device)
-        _, image, mask = next(self._data_iter)
-        image = image.to(self.device)
-        mask = mask.to(self.device).long()
-        output = self.model(image)
-        
-        mask = F.one_hot(mask, num_classes=output.shape[1]).permute(0, 3, 1, 2).float().to(device=self.device)
-
-        loss_fn = DiceCELoss(softmax=True)
-        loss = loss_fn(output, mask)
-        self.loss_logger.update(loss=loss)
-        self.metric_logger.update(loss=loss)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-        
-    def _run_step_spinal(self):
-        self.model.train()
-        self.model.to(self.device)
-        
-        _, image, mask = next(self._data_iter)
-        
-        image = image.to(self.device)
-        mask = mask.to(self.device)
-        output = self.model(image)
-
-        grey_mask = mask.eq(1).float()
-        cord_mask = mask.ge(1).float()
-
-        mask = torch.cat((grey_mask.unsqueeze(1), cord_mask.unsqueeze(1)), dim=1)
-        
-        loss_fn = DiceCELoss(sigmoid=True)  
-
-        loss = loss_fn(output, mask)
-        
-        self.loss_logger.update(loss=loss)
-        self.metric_logger.update(loss=loss)
-        
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-        
     @property
     def train_data_num(self):
         return self._train_data_num

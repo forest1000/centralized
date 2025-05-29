@@ -21,17 +21,7 @@ class SemiTrainer(TrainerBase):
         self._is_fully_supervised = is_fully_supervised
         task = cfg['task']
         if task == 'fundus':
-            self.run_step = self._run_step_fundus
-
-        elif task == 'prostate':
-            self.run_step = self._run_step_prostate
-
-        elif task == 'cardiac':
-            self.run_step = self._run_step_cardiac
-        
-        elif task == 'spinal':
-            self.run_step = self._run_step_spinal
-        
+            self.run_step = self._run_step_fundus       
     
         self.ema_flag = cfg['train']['ema']
         self.ema_model = None
@@ -83,6 +73,9 @@ class SemiTrainer(TrainerBase):
             ret.append(hooks.WAndBUploader(self.cfg))
         if self.cfg['train']['ema']:
             ret.append(hooks.EMA(self.cfg))
+        
+        ret.append(hooks.EvalHook(self.cfg))
+
         return ret
     
     def before_train(self):
